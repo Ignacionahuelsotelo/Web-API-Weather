@@ -1,0 +1,59 @@
+name: dockercompose507892069148507145
+services:
+  appdb:
+    container_name: app-db
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: pass123!
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    networks:
+      weatherapp: null
+    ports:
+    - mode: ingress
+      target: 1433
+      published: "8002"
+      protocol: tcp
+  weatherapi:
+    build:
+      context: C:\Users\Bienvenido\source\repos\WeatherApi
+      dockerfile: WeatherApi/Dockerfile
+    container_name: weather-app
+    depends_on:
+      appdb:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: https://+:443;http://+:80
+      DB_HOST: appdb
+      DB_NAME: WeatherApp
+      DB_SA_PASSWORD: pass123!
+    image: weatherapi
+    networks:
+      weatherapp: null
+    ports:
+    - mode: ingress
+      target: 80
+      protocol: tcp
+    - mode: ingress
+      target: 80
+      published: "8001"
+      protocol: tcp
+    - mode: ingress
+      target: 443
+      protocol: tcp
+    volumes:
+    - type: bind
+      source: C:\Users\Bienvenido\AppData\Roaming/Microsoft/UserSecrets
+      target: /root/.microsoft/usersecrets
+      read_only: true
+      bind:
+        create_host_path: true
+    - type: bind
+      source: C:\Users\Bienvenido\AppData\Roaming/ASP.NET/Https
+      target: /root/.aspnet/https
+      read_only: true
+      bind:
+        create_host_path: true
+networks:
+  weatherapp:
+    name: dockercompose507892069148507145_weatherapp
